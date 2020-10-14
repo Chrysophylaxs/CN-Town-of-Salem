@@ -104,8 +104,8 @@ void sendToMafia(std::string msg) {
 }
 
 void sendToIndex(std::string msg, int index) {
-	const char *buf = msg.c_str();
-	if (index >= 0) {
+    const char *buf = msg.c_str();
+    if (index >= 0) {
         if (clientSocket.at(index) != 0) {
             int bytesSent = send(clientSocket.at(index), buf, (int)msg.size(), 0);
             getpeername(clientSocket.at(index), (sockaddr *)&recipient, &addrLength);
@@ -117,7 +117,7 @@ void sendToIndex(std::string msg, int index) {
                 std::cout << " <- " << msg;
             }
         }
-	}
+    }
     Sleep(500);
 }
 
@@ -694,22 +694,22 @@ void dayNightCycle() {
         phase = "discussion";
         sendToEveryone("DISCUSSION\n");
         Sleep(30000);
-		majority = 0;
-		for (int i = 0; i < maxClients; ++i) {
-			if (clientSocket.at(i) > 0 && players.at(i).alive) {
-				majority++;
-			}
-		}
-		majority += 2;
-		majority /= 2;
+        majority = 0;
+        for (int i = 0; i < maxClients; ++i) {
+            if (clientSocket.at(i) > 0 && players.at(i).alive) {
+                majority++;
+            }
+        }
+        majority += 2;
+        majority /= 2;
         phase = "voting";
-		sendToEveryone("VOTING\n");
-		Sleep(15000);
-		for (int i = 0; i < maxClients; ++i) {
-		    if (votes.at(i) != -1) {
+        sendToEveryone("VOTING\n");
+        Sleep(15000);
+        for (int i = 0; i < maxClients; ++i) {
+            if (votes.at(i) != -1) {
                 totalVotes.at(votes.at(i)) += players.at(i).voting;
-		    }
-		}
+            }
+        }
         for (int i = 0; i < maxClients; ++i) {
             if (totalVotes.at(i) >= majority && players.at(i).alive) {
                 sendToEveryone(clientName.at(i) + " has been voted up by the town.\n");
@@ -765,23 +765,23 @@ void dayNightCycle() {
                 }
             }
         }
-		for (int i = 0; i < maxClients; ++i) {
-			votes.at(i) = -1;
-			totalVotes.at(i) = 0;
-		}
-		Sleep(5000);
+        for (int i = 0; i < maxClients; ++i) {
+            votes.at(i) = -1;
+            totalVotes.at(i) = 0;
+        }
+        Sleep(5000);
     }
 }
 
 // Server
 int main() {
-	// General Variables
-	WSADATA wsaData;
-	srand(time(nullptr));
+    // General Variables
+    WSADATA wsaData;
+    srand(time(nullptr));
     std::thread cycle;
 
-	// Roles
-	roles.at(0) = "Jailor"; roles.at(1) = "TI"; roles.at(2) = "TI";
+    // Roles
+    roles.at(0) = "Jailor"; roles.at(1) = "TI"; roles.at(2) = "TI";
     roles.at(3) = "TP"; roles.at(4) = "TK"; roles.at(5) = "TS";
     roles.at(6) = "RT"; roles.at(7) = "RT"; roles.at(8) = "RT";
     roles.at(9) = "Godfather"; roles.at(10) = "Mafioso"; roles.at(11) = "RM";
@@ -795,187 +795,187 @@ int main() {
     std::vector<std::string> NE = {"Jester", "Executioner"};
     std::vector<std::string> NK = {"Serialkiller", "Werewolf", "Arsonist"};
 
-	// Server variables
-	SOCKET serverSocketTCP, incomingSocket, temp;
+    // Server variables
+    SOCKET serverSocketTCP, incomingSocket, temp;
 
-	// Variables for select
-	fd_set readfds;
+    // Variables for select
+    fd_set readfds;
 
-	// Variables for sending and receiving
-	int bytes, bytesSent;
-	const int bufSize = 2048;
-	auto *buffer = new char[bufSize + 1];
+    // Variables for sending and receiving
+    int bytes, bytesSent;
+    const int bufSize = 2048;
+    auto *buffer = new char[bufSize + 1];
 
-	// Response codes
-	std::string response;
-	const char* SEND_OK = "SEND-OK\n";
-	const char* UNKNOWN = "UNKNOWN\n";
-	const char* IN_USE = "INUSE\n";
-	const char* BUSY = "BUSY\n";
-	const char* BAD_RQST_HDR = "BAD-RQST-HDR\n";
-	const char* BAD_RQST_BODY = "BAD-RQST-BODY\n";
-	const char* SERVER_ERROR = "SERVER-ERROR\n";
+    // Response codes
+    std::string response;
+    const char* SEND_OK = "SEND-OK\n";
+    const char* UNKNOWN = "UNKNOWN\n";
+    const char* IN_USE = "INUSE\n";
+    const char* BUSY = "BUSY\n";
+    const char* BAD_RQST_HDR = "BAD-RQST-HDR\n";
+    const char* BAD_RQST_BODY = "BAD-RQST-BODY\n";
+    const char* SERVER_ERROR = "SERVER-ERROR\n";
 
-	// Initializing clients to zero
-	for (int i = 0; i < maxClients; i++) {
-		clientSocket.at(i) = 0; // TCP
-	}
+    // Initializing clients to zero
+    for (int i = 0; i < maxClients; i++) {
+        clientSocket.at(i) = 0; // TCP
+    }
 
-	// Initializing WSA
-	std::cout << "Initialising WSA...";
-	int wsaError = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (wsaError != 0) {
-		std::cout << " > Failed Initialising. Code: " << wsaError << std::endl;
-		return 1;
-	}
-	std::cout << " > Initialised." << std::endl;
+    // Initializing WSA
+    std::cout << "Initialising WSA...";
+    int wsaError = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (wsaError != 0) {
+        std::cout << " > Failed Initialising. Code: " << wsaError << std::endl;
+        return 1;
+    }
+    std::cout << " > Initialised." << std::endl;
 
-	// Creating server TCP socket
-	std::cout << "Creating socket...";
-	serverSocketTCP = socket(AF_INET, SOCK_STREAM, 0); // TCP
-	if (serverSocketTCP == INVALID_SOCKET) {
-		std::cout << " > Failed Creating. Code: " << WSAGetLastError() << std::endl;
-		return 1;
-	}
-	std::cout << " > Socket created." << std::endl;
+    // Creating server TCP socket
+    std::cout << "Creating socket...";
+    serverSocketTCP = socket(AF_INET, SOCK_STREAM, 0); // TCP
+    if (serverSocketTCP == INVALID_SOCKET) {
+        std::cout << " > Failed Creating. Code: " << WSAGetLastError() << std::endl;
+        return 1;
+    }
+    std::cout << " > Socket created." << std::endl;
 
-	// Setting server address and port
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr("192.168.0.120");
-	//server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(8888);
+    // Setting server address and port
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr("192.168.0.120");
+    //server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(8888);
 
-	// Binding socket to server address and port
-	std::cout << "Binding socket...";
-	if (bind(serverSocketTCP, (sockaddr*)&server, addrLength) == SOCKET_ERROR) {
-		std::cout << " > Failed Binding. Code: " << WSAGetLastError() << std::endl;
-		return 1;
-	}
-	std::cout << " > Socket bound." << std::endl;
+    // Binding socket to server address and port
+    std::cout << "Binding socket...";
+    if (bind(serverSocketTCP, (sockaddr*)&server, addrLength) == SOCKET_ERROR) {
+        std::cout << " > Failed Binding. Code: " << WSAGetLastError() << std::endl;
+        return 1;
+    }
+    std::cout << " > Socket bound." << std::endl;
 
-	// Setting TCP to listen for connections
-	listen(serverSocketTCP, SOMAXCONN);
-	std::cout << "Listening for incoming connections." << std::endl;
-	std::cout << "===================================" << std::endl;
+    // Setting TCP to listen for connections
+    listen(serverSocketTCP, SOMAXCONN);
+    std::cout << "Listening for incoming connections." << std::endl;
+    std::cout << "===================================" << std::endl;
 
-	// Loop until stop
-	while (!stop) {
-		// Set Server and Client sockets to be selected
-		FD_ZERO(&readfds);
-		FD_SET(serverSocketTCP, &readfds);
+    // Loop until stop
+    while (!stop) {
+        // Set Server and Client sockets to be selected
+        FD_ZERO(&readfds);
+        FD_SET(serverSocketTCP, &readfds);
 
-		for (int i = 0; i < maxClients; i++) {
-			if (clientSocket.at(i) > 0) {
-				FD_SET(clientSocket.at(i), &readfds);
-			}
-		}
+        for (int i = 0; i < maxClients; i++) {
+            if (clientSocket.at(i) > 0) {
+                FD_SET(clientSocket.at(i), &readfds);
+            }
+        }
 
-		// Select
-		if (select(0, &readfds, nullptr, nullptr, nullptr) == SOCKET_ERROR) {
-			std::cout << "Failed Selecting. Code: " << WSAGetLastError() << std::endl;
-			stop = true;
-		}
-		// TCP Socket is set: Incoming connection
-		else if (FD_ISSET(serverSocketTCP, &readfds)) {
-			// Accept connection
-			incomingSocket = accept(serverSocketTCP, (sockaddr*)&client, &addrLength);
-			std::cout << inet_ntoa(client.sin_addr) << ":" << ntohs(client.sin_port);
-			if (incomingSocket == INVALID_SOCKET) {
-				std::cout << " -> Failed Accepting connection. Code: " << WSAGetLastError() << std::endl;
-				continue;
-			}
+        // Select
+        if (select(0, &readfds, nullptr, nullptr, nullptr) == SOCKET_ERROR) {
+            std::cout << "Failed Selecting. Code: " << WSAGetLastError() << std::endl;
+            stop = true;
+        }
+        // TCP Socket is set: Incoming connection
+        else if (FD_ISSET(serverSocketTCP, &readfds)) {
+            // Accept connection
+            incomingSocket = accept(serverSocketTCP, (sockaddr*)&client, &addrLength);
+            std::cout << inet_ntoa(client.sin_addr) << ":" << ntohs(client.sin_port);
+            if (incomingSocket == INVALID_SOCKET) {
+                std::cout << " -> Failed Accepting connection. Code: " << WSAGetLastError() << std::endl;
+                continue;
+            }
 
-			// Check if there are already maxClients
-			int num = 0;
-			while (num < maxClients && !clientName.at(num).empty()) {
-				num++;
-			}
-			if (num == maxClients) {
-				// Server is busy
-				bytesSent = send(incomingSocket, BUSY, (int)strlen(BUSY), 0);
-				if (bytesSent == SOCKET_ERROR) {
-					std::cout << " <- Error sending message, code:" << WSAGetLastError() << std::endl;
-				}
-				else {
-					std::cout << " <- BUSY" << std::endl;
-				}
-				closesocket(incomingSocket);
-			}
-			else {
-				clientSocket.at(num) = incomingSocket;
-				std::cout << " -> Connected." << std::endl;
-			}
-		}
-		// Something happened on a Client Socket (TCP)
-		else {
-			// Loop through all client sockets
-			for (int num = 0; num < maxClients; num++) {
-				// Check if it is in use
-				if (clientSocket.at(num) == 0) {
-					continue;
-				}
-				temp = clientSocket.at(num);
-				// Check if something happened
-				if (FD_ISSET(temp, &readfds)) {
-					// Logging
-					getpeername(temp, (sockaddr*)&client, &addrLength);
-					std::cout << inet_ntoa(client.sin_addr) << ":" << ntohs(client.sin_port);
-					// Receive message
-					bytes = recv(temp, buffer, bufSize, 0);
-					// Something went wrong
-					if (bytes == SOCKET_ERROR) {
-						// Check if they abruptly disconnected
-						if (WSAGetLastError() == WSAECONNRESET) {
-							std::cout << " -> Unexpectedly Disconnected." << std::endl;
-							closesocket(temp);
-							clientSocket.at(num) = 0;
-							clientName.at(num) = "";
-						}
-						else {
-							std::cout << " -> Failed Receiving. Code: " << WSAGetLastError() << std::endl;
-						}
-					}
-					// Check if they disconnected
-					else if (bytes == 0) {
-						std::cout << " -> Disconnected." << std::endl;
+            // Check if there are already maxClients
+            int num = 0;
+            while (num < maxClients && !clientName.at(num).empty()) {
+                num++;
+            }
+            if (num == maxClients) {
+                // Server is busy
+                bytesSent = send(incomingSocket, BUSY, (int)strlen(BUSY), 0);
+                if (bytesSent == SOCKET_ERROR) {
+                    std::cout << " <- Error sending message, code:" << WSAGetLastError() << std::endl;
+                }
+                else {
+                    std::cout << " <- BUSY" << std::endl;
+                }
+                closesocket(incomingSocket);
+            }
+            else {
+                clientSocket.at(num) = incomingSocket;
+                std::cout << " -> Connected." << std::endl;
+            }
+        }
+        // Something happened on a Client Socket (TCP)
+        else {
+            // Loop through all client sockets
+            for (int num = 0; num < maxClients; num++) {
+                // Check if it is in use
+                if (clientSocket.at(num) == 0) {
+                    continue;
+                }
+                temp = clientSocket.at(num);
+                // Check if something happened
+                if (FD_ISSET(temp, &readfds)) {
+                    // Logging
+                    getpeername(temp, (sockaddr*)&client, &addrLength);
+                    std::cout << inet_ntoa(client.sin_addr) << ":" << ntohs(client.sin_port);
+                    // Receive message
+                    bytes = recv(temp, buffer, bufSize, 0);
+                    // Something went wrong
+                    if (bytes == SOCKET_ERROR) {
+                        // Check if they abruptly disconnected
+                        if (WSAGetLastError() == WSAECONNRESET) {
+                            std::cout << " -> Unexpectedly Disconnected." << std::endl;
+                            closesocket(temp);
+                            clientSocket.at(num) = 0;
+                            clientName.at(num) = "";
+                        }
+                        else {
+                            std::cout << " -> Failed Receiving. Code: " << WSAGetLastError() << std::endl;
+                        }
+                    }
+                    // Check if they disconnected
+                    else if (bytes == 0) {
+                        std::cout << " -> Disconnected." << std::endl;
 
-						closesocket(temp);
-						clientSocket.at(num) = 0;
-						clientName.at(num) = "";
-					}
-					// Process the message
-					else {
-						buffer[bytes] = '\0';
-						std::string msg = buffer;
-						std::cout << " -> " << msg;
-						// Handshake
-						if (msg.size() > 5 && msg.substr(0, 5) == "LOGIN") {
-							if (msg.size() > 6) {
-								// Check if they already logged in
-								if (!clientName.at(num).empty()) {
-									response = BAD_RQST_HDR;
-								}
-								else {
-									// Extract name from message
-									std::string name;
-									int index = 6;
-									while (index < msg.size() && !isspace(msg.at(index))) {
-										name += msg.at(index);
-										index++;
-									}
-									// Check if it is already being used
-									bool inuse = false;
+                        closesocket(temp);
+                        clientSocket.at(num) = 0;
+                        clientName.at(num) = "";
+                    }
+                    // Process the message
+                    else {
+                        buffer[bytes] = '\0';
+                        std::string msg = buffer;
+                        std::cout << " -> " << msg;
+                        // Handshake
+                        if (msg.size() > 5 && msg.substr(0, 5) == "LOGIN") {
+                            if (msg.size() > 6) {
+                                // Check if they already logged in
+                                if (!clientName.at(num).empty()) {
+                                    response = BAD_RQST_HDR;
+                                }
+                                else {
+                                    // Extract name from message
+                                    std::string name;
+                                    int index = 6;
+                                    while (index < msg.size() && !isspace(msg.at(index))) {
+                                        name += msg.at(index);
+                                        index++;
+                                    }
+                                    // Check if it is already being used
+                                    bool inuse = false;
                                     for (int i = 0; i < maxClients; i++) {
                                         if (name == clientName.at(i)) {
                                             inuse = true;
                                             break;
                                         }
                                     }
-									// Set appropriate response
-									if (inuse) {
-										response = IN_USE;
-									}
-									else {
+                                    // Set appropriate response
+                                    if (inuse) {
+                                        response = IN_USE;
+                                    }
+                                    else {
                                         response = "HELLO " + name + "\n";
                                         const char *buf = response.c_str();
                                         bytesSent = send(temp, buf, (int)response.size(), 0);
@@ -996,19 +996,19 @@ int main() {
                                             }
                                         }
                                         response += "\n";
-									}
-								}
-							}
-							// No name
-							else {
-								response = BAD_RQST_BODY;
-							}
+                                    }
+                                }
+                            }
+                            // No name
+                            else {
+                                response = BAD_RQST_BODY;
+                            }
                             // Send response
                             sendToEveryone(response);
-						}
-						// Send a message
-						else if (msg.size() > 4 && msg.substr(0, 4) == "SEND") {
-						    response = clientName.at(num) + ": " + msg.erase(0, 5);
+                        }
+                        // Send a message
+                        else if (msg.size() > 4 && msg.substr(0, 4) == "SEND") {
+                            response = clientName.at(num) + ": " + msg.erase(0, 5);
                             // Send response
                             if (phase == "night" && (num == jailee || roles.at(num) == "Jailor") && players.at(num).alive) {
                                 sendToJail(response);
@@ -1024,8 +1024,8 @@ int main() {
                             else {
                                 sendToDead(response);
                             }
-						}
-						else if (msg == "FILL\n") {
+                        }
+                        else if (msg == "FILL\n") {
                             for (int i = 0; i < maxClients; i++) {
                                 if (clientName.at(i).empty()) {
                                     clientName.at(i) = "Bot" + std::to_string(i + 1);
@@ -1042,8 +1042,8 @@ int main() {
                             response += "\n";
                             // Send response
                             sendToEveryone(response);
-						}
-						else if (msg == "START\n") {
+                        }
+                        else if (msg == "START\n") {
                             int currentIndex = maxClients, randomIndex;
                             std::string temporaryValue;
                             while (currentIndex != 0) {
@@ -1109,44 +1109,44 @@ int main() {
                             Sleep(100);
                             // Send response
                             sendToEveryone(response);
-						}
-						else if (msg == "CANCEL\n") {
-							if (phase == "voting") {
+                        }
+                        else if (msg == "CANCEL\n") {
+                            if (phase == "voting") {
                                 votes.at(num) = -1;
                                 response = clientName.at(num) + " has cancelled their vote.\n";
                                 // Send response
                                 sendToEveryone(response);
-							}
-							else if (phase == "night") {
-							    nightAbilities.at(num) = -1;
+                            }
+                            else if (phase == "night") {
+                                nightAbilities.at(num) = -1;
                                 sendToIndex("You have changed your mind.\n", num);
-							}
-						}
-						else if (msg.substr(0, 4) == "VOTE") {
-							int index = 5;
-							std::string tmp;
-							while (index < msg.size() && !isspace(msg.at(index))) {
-								tmp += msg.at(index);
-								index++;
-							}
-							int vote = std::stoi(tmp);
-							votes.at(num) = vote;
-							response = clientName.at(num) + " has voted against " + clientName.at(vote) + '\n';
+                            }
+                        }
+                        else if (msg.substr(0, 4) == "VOTE") {
+                            int index = 5;
+                            std::string tmp;
+                            while (index < msg.size() && !isspace(msg.at(index))) {
+                                tmp += msg.at(index);
+                                index++;
+                            }
+                            int vote = std::stoi(tmp);
+                            votes.at(num) = vote;
+                            response = clientName.at(num) + " has voted against " + clientName.at(vote) + '\n';
                             // Send response
                             sendToEveryone(response);
-						}
-						else if (msg == "GUILTY\n") {
-							judging.at(num) = 1;
-							response = clientName.at(num) + " has voted.\n";
+                        }
+                        else if (msg == "GUILTY\n") {
+                            judging.at(num) = 1;
+                            response = clientName.at(num) + " has voted.\n";
                             // Send response
                             sendToEveryone(response);
-						}
-						else if (msg == "INNO\n") {
+                        }
+                        else if (msg == "INNO\n") {
                             judging.at(num) = -1;
-							response = clientName.at(num) + " has voted.\n";
+                            response = clientName.at(num) + " has voted.\n";
                             // Send response
                             sendToEveryone(response);
-						}
+                        }
                         else if (msg.substr(0, 12) == "NIGHTABILITY") {
                             int index = 13;
                             std::string tmp;
@@ -1188,32 +1188,32 @@ int main() {
                                 sendToEveryone(response);
                             }
                         }
-						else {
-							response = BAD_RQST_HDR;
+                        else {
+                            response = BAD_RQST_HDR;
                             // Send response
                             sendToIndex(response, num);
-						}
-					} // received bytes is an actual message
-				} // clientSocket.at(num) is set
-			} // loop through clientSocket
-		} // serverSockets are not set
-	} // loop until stop
+                        }
+                    } // received bytes is an actual message
+                } // clientSocket.at(num) is set
+            } // loop through clientSocket
+        } // serverSockets are not set
+    } // loop until stop
 
-	// Cleaning up
-	for (int i = 0; i < maxClients; i++) {
-		if (clientSocket.at(i) > 0) {
-			closesocket(clientSocket.at(i));
-		}
-	}
-	closesocket(serverSocketTCP);
-	FD_ZERO(&readfds);
+    // Cleaning up
+    for (int i = 0; i < maxClients; i++) {
+        if (clientSocket.at(i) > 0) {
+            closesocket(clientSocket.at(i));
+        }
+    }
+    closesocket(serverSocketTCP);
+    FD_ZERO(&readfds);
 
-	delete[] buffer;
-	WSACleanup();
+    delete[] buffer;
+    WSACleanup();
 
-	cycle.join();
+    cycle.join();
 
-	std::cout << " > Shut down." << std::endl;
+    std::cout << " > Shut down." << std::endl;
 
-	return 0;
+    return 0;
 }
